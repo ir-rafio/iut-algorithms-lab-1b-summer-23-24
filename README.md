@@ -8,7 +8,7 @@ Welcome to the repository for **CSE 4404: Algorithms Lab for the Summer 23–24 
 
 ```
 .
-├── General Lab Instructions.pdf      # Common rules and setup guide
+├── General Lab Instructions.pdf
 ├── README.md                         # This file
 ├── localjudge.sh                     # Bash script for testing solutions locally
 ├── Lab 1/
