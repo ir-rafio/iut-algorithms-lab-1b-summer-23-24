@@ -6,6 +6,17 @@
 # Log files
 *.log
 
+# Lock files
+*.lock
+
+# Backup files
+*~
+
+# Swap/temporary files
+*.swp
+*.swo
+*.tmp
+
 # Archives
 *.zip
 
