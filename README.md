@@ -10,7 +10,7 @@ Welcome to the repository for **CSE 4404: Algorithms Lab for the Summer 23–24 
 .
 ├── General Lab Instructions.pdf
 ├── README.md                         # This file
-├── localjudge.sh                     # Bash script for testing solutions locally
+├── localjudge.sh                     # Bash script for testing submissions locally
 ├── Lab 1/
 │   ├── Lab 1 Handout.pdf
 │   ├── Lab 1 Editorial.md            # Editorial (added after deadline)
@@ -76,7 +76,7 @@ After the submission deadline:
 
 ## 🧪 Local Testing
 
-Before submitting, you can test your solutions locally using the script `localjudge.sh`.
+Before submitting, you can test your submissions locally using the script `localjudge.sh`.
 
 ### ✅ Requirements
 
