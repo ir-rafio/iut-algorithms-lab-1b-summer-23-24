@@ -38,8 +38,8 @@ BOLDGREEN='\e[1;32m'
 BOLDRED='\e[1;31m'
 RESET='\e[0m'
 
-TIME_LIMIT=$(grep 'time_limit' $TASK_PATH/limits.yaml | awk '{print $2}')
-MEMORY_LIMIT=$(grep 'memory_limit' $TASK_PATH/limits.yaml | awk '{print $2}')
+TIME_LIMIT=$(grep 'time_limit' "$TASK_PATH"/limits.yaml | awk '{print $2}')
+MEMORY_LIMIT=$(grep 'memory_limit' "$TASK_PATH"/limits.yaml | awk '{print $2}')
 
 declare -A verdict_priority=(
     ["COMPILATION ERROR"]=4
@@ -59,7 +59,7 @@ clean_file() {
     | awk '{print} END{if (NR > 0) print ""}' > "$2"
 }
 
-for source_file in $TASK_PATH/submission/*.cpp; do
+for source_file in "$TASK_PATH"/submission/*.cpp; do
     name=$(basename "$source_file" .cpp)
     executable="./$name.bin"
 
@@ -74,20 +74,23 @@ for source_file in $TASK_PATH/submission/*.cpp; do
 
     highest_verdict="ACCEPTED"
 
-    for in_file in $(ls $TASK_PATH/input/input*.txt | sort -V); do
+    shopt -s nullglob
+    mapfile -t inputs < <(find "$TASK_PATH"/input -type f -name "input*.txt" | sort -V)
+
+    for in_file in "${inputs[@]}"; do
         case_id=$(basename "$in_file" .txt | sed 's/input//')
         printf -v padded_case_id "%02d" "$case_id"
 
-        ans_file="${TASK_PATH}/answer/answer${case_id}.txt"
+        ans_file="$TASK_PATH"/answer/answer${case_id}.txt
         output_file="output_file.txt"
 
         input_with_sentinel=input_with_sentinel.txt
         cp "$in_file" $input_with_sentinel
-        echo "$RANDOM" >> $input_with_sentinel
+        echo -e "\n$RANDOM" >> "$input_with_sentinel"
 
         /usr/bin/timeout --preserve-status -s SIGKILL "${TIME_LIMIT}s" \
         /usr/bin/time -f "TIME=%e MEM=%M" -o usage.log \
-        bash -c "ulimit -v $((MEMORY_LIMIT * 1024)); $executable < $input_with_sentinel > $output_file" 2>/dev/null
+        bash -c "ulimit -v $((MEMORY_LIMIT * 1024)); \"$executable\" < $input_with_sentinel > $output_file" 2>/dev/null
 
         status=$?
         read time_s mem_kb < <(awk -F '[ =]' '{print $2, $4}' usage.log 2>/dev/null)
@@ -134,7 +137,7 @@ for source_file in $TASK_PATH/submission/*.cpp; do
         final_results+=("$name: ${BOLDRED}$highest_verdict${RESET}")
     fi
 
-    rm -f "$executable" input_with_sentinel.txt "$name.compile.log"
+    rm -f "$executable" $input_with_sentinel $output_file "$name.compile.log"
 done
 
 echo
