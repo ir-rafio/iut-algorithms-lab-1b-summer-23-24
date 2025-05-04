@@ -1,6 +1,7 @@
 # Compiled binary files
 *.o
 *.exe
+*.bin
 
 # Log files
 *.log
