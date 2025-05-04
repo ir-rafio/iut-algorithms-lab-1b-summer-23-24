@@ -2,6 +2,9 @@
 *.o
 *.exe
 
+# Log files
+*.log
+
 # Archives
 *.zip
 
