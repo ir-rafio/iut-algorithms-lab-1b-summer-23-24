@@ -31,3 +31,6 @@ __pycache__/
 # Ignore non-C++ files inside any submission/ directory
 **/submission/*
 !**/submission/*.cpp
+
+#Ignore instructor solutions
+**/submission/*190041125*
