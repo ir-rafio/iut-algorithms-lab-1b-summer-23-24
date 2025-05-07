@@ -65,7 +65,7 @@ for source_file in "$TASK_PATH"/submission/*.cpp; do
 
     echo "Judging $name..."
 
-    g++ "$source_file" -o "$executable" 2> "$name.compile.log" 2>/dev/null
+    g++ -std=c++17 "$source_file" -o "$executable" 2> "$name.compile.log" 2>/dev/null
     if [ $? -ne 0 ]; then
         echo "$name: COMPILATION ERROR"
         final_results+=("$name: ${BOLDRED}COMPILATION ERROR${RESET}")
