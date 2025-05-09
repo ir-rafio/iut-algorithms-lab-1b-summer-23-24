@@ -54,9 +54,9 @@ Each **Lab** folder contains multiple **Task** folders. Each **Task** folder con
 ### 🧑‍💻 Solving and Submitting
 
 - Implement your solution(s) in C++.
-- Save them using the following naming format: `task{X}_lab{Y}_full_student_id.cpp`.
-  Example: `taskA_lab1_190041125.cpp`
-- For submissions attempts, use suffixes. Example: `taskA_lab1_190041125_v2.cpp`
+- Save them using the following naming format: `{full_student_id}_lab{X}_task{Y}.cpp`.
+  Example: `190041125_lab1_taskA.cpp`.
+- For multiple submissions, use suffixes. Example: `190041125_lab1_taskA_v2.cpp`.
 - Upload your `.cpp` file(s) to the corresponding assignment in **Google Classroom**.
 
 > The submission period is usually **1 week**, but always check **Google Classroom** for the exact deadline.
