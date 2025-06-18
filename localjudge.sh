@@ -59,22 +59,76 @@ clean_file() {
     | awk '{print} END{if (NR > 0) print ""}' > "$2"
 }
 
-for source_file in "$TASK_PATH"/submission/*.cpp; do
-    name=$(basename "$source_file" .cpp)
-    executable="./$name.bin"
+judgeCPP() {
+    local source_file="$1"
+    local name=$(basename "$source_file" .cpp)
+    local executable="./${name}_cpp.bin"
 
-    echo "Judging $name..."
-
-    g++ -std=c++17 "$source_file" -o "$executable" 2> "$name.compile.log" 2>/dev/null
+    g++ -std=c++17 "$source_file" -o "$executable" 2> "${name}_cpp.compile.log"
     if [ $? -ne 0 ]; then
-        echo "$name: COMPILATION ERROR"
-        final_results+=("$name: ${BOLDRED}COMPILATION ERROR${RESET}")
-        continue
+        echo "$name.cpp: COMPILATION ERROR"
+        final_results+=("$name.cpp: ${BOLDRED}COMPILATION ERROR${RESET}")
+        return
     fi
 
+    runExecutable "$name.cpp" "$executable"
+    rm -f "$executable" "${name}_cpp.compile.log"
+}
+
+judgeC() {
+    local source_file="$1"
+    local name=$(basename "$source_file" .c)
+    local executable="./${name}_c.bin"
+
+    gcc -std=c11 "$source_file" -o "$executable" 2> "${name}_c.compile.log"
+    if [ $? -ne 0 ]; then
+        echo "$name.c: COMPILATION ERROR"
+        final_results+=("$name.c: ${BOLDRED}COMPILATION ERROR${RESET}")
+        return
+    fi
+
+    runExecutable "$name.c" "$executable"
+    rm -f "$executable" "${name}_c.compile.log"
+}
+
+judgePY() {
+    local source_file="$1"
+    local name=$(basename "$source_file" .py)
+    runExecutable "$name.py" "python3 \"$source_file\""
+}
+
+judgeJava() {
+    local source_file="$1"
+    local orig_name=$(basename "$source_file")
+    local name_without_ext="${orig_name%.java}"
+    local temp_source="Main.java"
+
+    if ! grep -q "public[[:space:]]\+class[[:space:]]\+Main" "$source_file"; then
+        echo "$orig_name: COMPILATION ERROR (Main class not found)"
+        final_results+=("$orig_name: ${BOLDRED}COMPILATION ERROR${RESET}")
+        return
+    fi
+
+    cp "$source_file" "$temp_source"
+    javac "$temp_source" 2> "${name_without_ext}_java.compile.log"
+    if [ $? -ne 0 ]; then
+        echo "$orig_name: COMPILATION ERROR"
+        final_results+=("$orig_name: ${BOLDRED}COMPILATION ERROR${RESET}")
+        rm -f "$temp_source"
+        return
+    fi
+
+    runExecutable "$orig_name" "java Main"
+    rm -f Main.class "$temp_source" "${name_without_ext}_java.compile.log"
+}
+
+runExecutable() {
+    local name="$1"
+    local command="$2"
+
+    echo "Judging $name..."
     highest_verdict="ACCEPTED"
 
-    shopt -s nullglob
     mapfile -t inputs < <(find "$TASK_PATH"/input -type f -name "input*.txt" | sort -V)
 
     for in_file in "${inputs[@]}"; do
@@ -83,14 +137,16 @@ for source_file in "$TASK_PATH"/submission/*.cpp; do
 
         ans_file="$TASK_PATH"/answer/answer${case_id}.txt
         output_file="output_file.txt"
+        input_with_sentinel="input_with_sentinel.txt"
 
-        input_with_sentinel=input_with_sentinel.txt
-        cp "$in_file" $input_with_sentinel
+        cp "$in_file" "$input_with_sentinel"
         echo -e "\n$RANDOM" >> "$input_with_sentinel"
 
+        full_command="ulimit -v $((MEMORY_LIMIT * 1024)); $command < \"$input_with_sentinel\" > \"$output_file\""
+
         /usr/bin/timeout --preserve-status -s SIGKILL "${TIME_LIMIT}s" \
-        /usr/bin/time -f "TIME=%e MEM=%M" -o usage.log \
-        bash -c "ulimit -v $((MEMORY_LIMIT * 1024)); \"$executable\" < $input_with_sentinel > $output_file" 2>/dev/null
+            /usr/bin/time -f "TIME=%e MEM=%M" -o usage.log \
+            bash -c "$full_command" 2>/dev/null
 
         status=$?
         read time_s mem_kb < <(awk -F '[ =]' '{print $2, $4}' usage.log 2>/dev/null)
@@ -99,9 +155,7 @@ for source_file in "$TASK_PATH"/submission/*.cpp; do
         time_ms=$(echo "($time_s * 1000 + 0.5)/1" | bc)
         mem_mb=$(echo "($mem_kb / 1024 + 0.5)/1" | bc)
 
-        if [ $status -eq 124 ]; then
-            test_verdict="TIME/MEMORY LIMIT EXCEEDED"
-        elif [ $status -eq 137 ]; then
+        if [ $status -eq 124 ] || [ $status -eq 137 ]; then
             test_verdict="TIME/MEMORY LIMIT EXCEEDED"
         elif [ $status -ne 0 ]; then
             test_verdict="RUNTIME ERROR"
@@ -137,7 +191,18 @@ for source_file in "$TASK_PATH"/submission/*.cpp; do
         final_results+=("$name: ${BOLDRED}$highest_verdict${RESET}")
     fi
 
-    rm -f "$executable" $input_with_sentinel $output_file "$name.compile.log"
+    rm -f "$input_with_sentinel" "$output_file"
+}
+
+mapfile -t source_files < <(find "$TASK_PATH"/submission -type f \( -name "*.cpp" -o -name "*.c" -o -name "*.py" -o -name "*.java" \) | sort)
+
+for source_file in "${source_files[@]}"; do
+    case "$source_file" in
+        *.cpp)  judgeCPP "$source_file" ;;
+        *.c)    judgeC "$source_file" ;;
+        *.py)   judgePY "$source_file" ;;
+        *.java) judgeJava "$source_file" ;;
+    esac
 done
 
 echo
