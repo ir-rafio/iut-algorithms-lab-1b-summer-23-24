@@ -15,7 +15,21 @@ void pre()
 
 void solve(int tc)
 {
-    
+    LL n,x;cin>>n>>x;
+
+    vector<LL>v(2*n);
+    for(auto &i:v)cin>>i;
+    sort(v.begin(),v.end());
+    LL j=n;
+    for(LL i=0;i<n;i++,j++){
+        LL dif=v[j]-v[i];
+        if(dif<x){
+            cout<<"NO\n";
+            return ;
+        }
+    }
+
+    cout<<"YES\n";
 }
 
 signed main()
@@ -23,13 +37,13 @@ signed main()
     pre();
 
     int tc, tt = 1;
-    cin >> tt;
+    // cin >> tt;
     
     for(tc = 1; tc <= tt; tc++)
     {
         // cout << "Case " << tc << ": ";
         solve(tc);
-        cout << '\n';
+        // cout << '\n';
     }
 
     return 0;

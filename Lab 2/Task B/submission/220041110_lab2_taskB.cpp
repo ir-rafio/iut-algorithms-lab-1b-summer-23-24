@@ -15,7 +15,27 @@ void pre()
 
 void solve(int tc)
 {
-    
+    int n,x,c = 0;
+    cin >> n >> x;
+    int ar[2*n];
+
+    for(int i=1; i<=2*n; i++)
+        cin >> ar[i];
+
+    sort(ar+1,ar+2*n+1);
+
+    for(int i=1; i<=n; i++)
+    {
+        if(ar[i+n] - ar[i] >= x)
+            c++;
+        else
+        {
+            cout << "NO" << endl;
+            break;
+        }
+    }
+    if(c == n)
+        cout << "YES" << endl;
 }
 
 signed main()
